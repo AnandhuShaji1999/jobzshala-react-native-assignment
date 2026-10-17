@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "jobzshala-matches",
+    "name": "Jobzshala Matches",
     "slug": "jobzshala-matches",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -16,10 +16,16 @@
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.jobzshala.matches",
+      "softwareKeyboardLayoutMode": "resize"
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "scheme": "jobzshala",
+    "plugins": [
+      "expo-router"
+    ]
   }
 }
