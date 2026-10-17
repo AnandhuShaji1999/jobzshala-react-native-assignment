@@ -1,109 +1,249 @@
-# Jobzshala — Job Matches (React Native take-home)
+# Jobzshala — Job Matches
 
-A small "Job Matches" flow for the Jobzshala candidate app: a ranked list of AI-matched jobs, a job detail screen, and an optimistic Apply flow. Built with Expo SDK 58, React Native 0.88 and TypeScript (strict), against a mock API that behaves like a flaky real network.
+A React Native take-home assignment for Jobzshala. This application provides a Job Matches experience with ranked job listings, job details, country filtering, English/Hindi language switching, offline support, and an optimistic Apply flow.
 
-Built for the user described in the brief: a budget Android phone (2–3 GB RAM), patchy 4G, possibly Hindi-first.
+The app uses Expo, React Native, TypeScript, and a mock API that simulates network delays and failures.
 
-## Run it
+## Features
+
+- **Job Matches list:** Displays ranked job recommendations with relevant job information.
+- **Country filter:** Filter jobs by country.
+- **Pull to refresh:** Refresh the job list.
+- **Infinite scrolling:** Load additional jobs through pagination.
+- **Job details:** View job information, benefits, and match reasons.
+- **Apply flow:** Apply optimistically, show confirmation, and roll back the state when an application fails.
+- **Persistent applied state:** Confirmed applications are preserved across app restarts.
+- **English and Hindi:** Switch between English and Hindi UI labels.
+- **Offline support:** Display cached job listings and an offline indicator.
+- **Loading and error states:** Handle loading, empty results, request failures, and retry actions.
+- **Mock network:** Simulate API delays and server failures.
+- **Accessibility basics:** Include accessible labels and appropriately sized touch targets.
+
+## Tech Stack
+
+- React Native
+- Expo SDK 57
+- TypeScript
+- Expo Router
+- TanStack Query
+- Zustand
+- AsyncStorage
+- Shopify FlashList
+- React Native NetInfo
+- Jest and Jest Expo
+
+The exact dependency versions are defined in `package.json`.
+
+## Requirements
+
+Before running the project, install:
+
+- Node.js (a version compatible with the installed Expo SDK)
+- npm
+- Expo Go compatible with the project's Expo SDK, or an Android emulator
+- Git (optional, for cloning the repository)
+
+## Getting Started
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/AnandhuShaji1999/jobzshala-react-native-assignment.git
+cd jobzshala-react-native-assignment
+```
+
+### 2. Install dependencies
 
 ```bash
 npm install
-npx expo start        # press "a" for an Android emulator, or scan the QR with Expo Go (SDK 58)
 ```
 
-Other scripts:
+If you are installing from a committed lockfile and want a reproducible installation, you can use:
 
 ```bash
-npm run typecheck     # tsc --noEmit (strict)
-npm test              # unit tests (apply logic + mock server)
+npm ci
 ```
 
-### Demo switches for the mock network
-
-Defaults follow the brief (800–1500 ms delay, ~1 in 5 calls fail with a 500). To demo a specific path deterministically:
+### 3. Start the development server
 
 ```bash
-EXPO_PUBLIC_MOCK_FAILURE_RATE=1 npx expo start    # every call fails -> error states, apply rollback
-EXPO_PUBLIC_MOCK_FAILURE_RATE=0 npx expo start    # never fails -> clean happy path
-EXPO_PUBLIC_MOCK_MIN_DELAY_MS=100 EXPO_PUBLIC_MOCK_MAX_DELAY_MS=200 npx expo start   # fast
+npx expo start
 ```
 
-To see the offline path, switch the device/emulator to airplane mode.
+To run on an Android emulator, press `a` in the terminal if the emulator is available.
 
-## What's in it
+To run on a physical Android device, open Expo Go and scan the QR code. Use an Expo Go version compatible with the project's SDK.
 
-| Requirement | Where |
-| --- | --- |
-| Job Matches list: card fields, sorted by score, country filter, pull-to-refresh | `src/app/index.tsx`, `src/components/JobCard.tsx`, `CountryFilterBar.tsx` |
-| Loading, empty, error (Retry), offline-without-cache states | `src/components/StateViews.tsx` |
-| Job Detail with sticky Apply, benefits, match reason | `src/app/job/[id].tsx` |
-| Optimistic apply, confirmation, rollback + clear error | `src/features/apply/applyToJob.ts`, `src/app/applied/[id].tsx`, `src/components/Snackbar.tsx` |
-| Applied state survives restart | `src/state/applyStore.ts` (persisted) |
-| EN / हिन्दी toggle for all UI labels | `src/i18n/`, `src/components/LanguageToggle.tsx` |
-| Offline banner + cached list, Apply disabled with reason | `src/components/OfflineBanner.tsx`, `src/state/queryClient.ts` |
-| Mock API (200 jobs, paginated, delay, 5xx) | `src/api/` |
-| Bonus: infinite scroll via the paginated endpoint | `src/hooks/useMatches.ts` |
-| Bonus: unit tests for optimistic update and rollback | `src/features/apply/__tests__/` |
-| Bonus: accessibility basics (labels, 48 dp targets) | throughout; `MIN_TOUCH` in `src/theme.ts` |
+## Available Scripts
 
-Not attempted: the voice-note bonus. I preferred to spend the time on the real-world states, which carry more weight.
-
-## Structure
-
+```bash
+npm run typecheck
+npm test
 ```
+
+- `npm run typecheck` checks TypeScript types, if the script is configured in `package.json`.
+- `npm test` runs the configured test suite, if the script is configured in `package.json`.
+
+## Mock API and Network Simulation
+
+The mock API simulates a real network by introducing request delays and occasional failures.
+
+The intended default behavior is:
+
+- Approximately 200 jobs.
+- Pagination with 20 jobs per page.
+- Simulated network delay of approximately 800–1500 ms.
+- Occasional server errors.
+
+The actual behavior is controlled by the mock API implementation in `src/api/`.
+
+### Demoing successful requests
+
+In Windows PowerShell, run:
+
+```powershell
+$env:EXPO_PUBLIC_MOCK_FAILURE_RATE="0"
+npx expo start
+```
+
+### Demoing failed requests
+
+```powershell
+$env:EXPO_PUBLIC_MOCK_FAILURE_RATE="1"
+npx expo start
+```
+
+### Demoing faster requests
+
+```powershell
+$env:EXPO_PUBLIC_MOCK_MIN_DELAY_MS="100"
+$env:EXPO_PUBLIC_MOCK_MAX_DELAY_MS="200"
+npx expo start
+```
+
+These environment variables work only if they are supported by the mock API implementation. Restart Expo after changing them.
+
+To demonstrate offline behavior, disable Wi-Fi and mobile data on the device or emulator.
+
+## Project Structure
+
+```text
 src/
-  api/        types, mock dataset, REST-style mock server, flaky transport, typed client
-  state/      persisted apply store, persisted language store, query client + cache persistence
-  features/   apply/applyToJob.ts — the optimistic-apply use case (pure, injectable, tested)
-  hooks/      useMatches (infinite list + refresh), useJob (detail)
-  i18n/       strings (en/hi, type-checked for key parity), t(), number formatting
-  components/ presentational pieces; no data fetching inside them except per-card applied flag
-  app/        expo-router screens (thin: compose hooks + components)
+├── api/          API types, mock dataset, mock server and transport
+├── app/          Expo Router screens
+├── components/   Reusable UI components
+├── features/     Feature-specific business logic
+├── hooks/        Data fetching and reusable hooks
+├── i18n/         English and Hindi translations
+└── state/        Application state and caching
 ```
 
-The layering is deliberate: **screens → hooks/features → api client → transport**. Swapping the mock for a real backend means rewriting only `src/api/transport.ts` (it is the one place that stands in for `fetch`); the client, server contract, hooks and UI do not change.
+The main architectural flow is:
 
-## Library choices and why
+```text
+Screens
+   ↓
+Hooks and feature logic
+   ↓
+API client
+   ↓
+Mock transport
+```
 
-- **Expo Router** — file-based routes, typed params, deep links for free, and it is the Expo-recommended path in SDK 58. Cost: one more abstraction than raw React Navigation.
-- **TanStack Query (+ async-storage persister)** — caching, pagination (`useInfiniteQuery`), retry, and offline pausing are exactly this app's problems, and writing them by hand is where bugs live. The persister is what makes "last cached list while offline" work after a cold start.
-- **Zustand (+ persist)** — two tiny pieces of client state (applied jobs, language). Selector subscriptions mean a card only re-renders when *its* applied flag changes; Context would re-render every card.
-- **@shopify/flash-list** — cell recycling for the 200-item scroll requirement on 2–3 GB devices. JS-only in v2, so it works in Expo Go. It is a list primitive, not a UI kit; all components and styling are my own.
-- **@react-native-community/netinfo** — one offline signal shared by the banner, the Apply button, the mock transport and React Query's `onlineManager`.
-- **No i18n library, no UI kit, no icon pack** — two languages and ~80 strings don't justify i18next; glyphs (✓ ✗ 📡) avoid shipping an icon font.
+This separation keeps UI components independent of the underlying transport and makes it easier to replace the mock API with a real backend.
 
-## How the tricky parts work
+## Library Choices
 
-- **Optimistic apply.** `applyToJob()` flips the job to `pending` synchronously on tap (the list tag and confirmation screen are correct before the network replies), calls the API, then `commit`s or `rollback`s. A failure removes the optimistic state and records *why* (server vs. offline). If the user is on the confirmation screen they see a full error with Try again; if they've already navigated away, a snackbar says the application was undone, so a "Applied" tag never just silently disappears.
-- **Persistence.** Only *confirmed* applications are persisted. Pending and failed state is session-only.
-- **Offline.** `NetInfo` drives a banner under the header on every screen. React Query pauses fetches offline and keeps showing persisted data (7-day cache). Apply is disabled with the reason shown next to it; `applyToJob` also refuses offline up front, so nothing needs rolling back.
-- **Detail screen.** It opens instantly from list data already in the cache (and works offline), then refreshes in the background. A failed background refresh never replaces content with an error screen.
-- **Pagination + refresh.** 20 per page, sorted globally by score on the "server" so pages never reshuffle. Pull-to-refresh fetches **page 1 only** and replaces the cache with it; calling `refetch()` would re-request every loaded page one after another and one flaky page would fail the lot. If a refresh fails, the existing list stays and a dismissible Retry strip appears. A failed "load more" shows an inline Retry instead of re-firing on every scroll.
-- **Performance on low-end devices.** FlashList recycling; `JobCard` is `memo`'d with a stable `onPress` and an immutable `job` prop; the applied flag is a primitive selector; skeleton pulses via one native-driven animated node; system font scaling is capped at 1.3× so large-font users don't break layouts.
-- **Hindi.** All UI labels switch instantly and persist. Line heights are ~1.45× font size because Devanagari clips at tighter values, and nothing has a fixed height or width, so longer Hindi strings wrap rather than break. Job content from the API stays English as specified; country names are localised because the filter needs them anyway.
-- **Employer privacy.** The data shape has no employer name or contact fields, only the generic `employer_display`. A test asserts it.
+### Expo Router
 
-## Trade-offs I made
+Provides file-based navigation and keeps screen organization simple.
 
-1. **List payload carries full job objects** (as in the sample shape), which is what lets detail open instantly and offline. A real API would probably return a slimmer summary; then the detail screen's persisted-cache fallback becomes the offline story, and first-time offline detail views would need a "not saved" state (the component already has one).
-2. **An apply interrupted by killing the app is treated as "not applied" on restart.** The honest fix is an outbox with an idempotency key and retry on reconnect; that is the first thing I'd build next. The mock server's apply is idempotent so that design drops in cleanly.
-3. **Whole query cache is serialised to AsyncStorage.** Fine for ~200 jobs (low hundreds of KB). It would not scale to thousands; I'd move to MMKV or SQLite.
-4. **Offline detection uses `isInternetReachable`.** On captive-portal networks the device can look online while requests fail; those failures are handled by the normal error paths rather than the offline banner.
-5. **Language defaults to English** instead of the device locale, and is a one-tap toggle in the header. I wanted the toggle to be the single obvious control; a first-run language prompt would suit this audience better.
-6. **Hindi copy was written by me and has not been reviewed by a native speaker.** It should be reviewed before shipping, especially the apply-failure messages.
-7. **Basic accessibility, not audited.** Labels, roles, live regions and 48 dp targets are in place, but I have not run a TalkBack pass.
-8. **Plain system fonts and emoji glyphs** instead of a brand font/icon set, to keep the bundle small and avoid font-loading states.
+### TanStack Query
 
-## With another day
+Handles server-state caching, pagination, refreshing, and request lifecycle management. Persisted caching supports displaying previously loaded data when offline.
 
-- Apply **outbox**: persist pending applications with an idempotency key, retry on reconnect, surface "Sending…" state.
-- Component tests (React Native Testing Library) for the list/empty/error/offline states, and Maestro flows for offline + rollback.
-- Test on a real 2 GB Android device with the Perf Monitor; tune `drawDistance` and page size from numbers rather than guesses.
-- Native-speaker Hindi review, plus a TalkBack pass.
-- Shimmer skeleton, relative "posted 3 days ago" using `posted_at` (it's in the data, not yet shown), scroll-position restore when returning from detail.
-- Voice-note bonus (record, playback, then submit).
-- Move the cache to MMKV/SQLite; add a hidden dev panel to flip failure rate and offline at runtime.
+### Zustand
 
-## Verification
+Manages lightweight client-side state, including applied jobs and language preferences.
 
-Automated: `npm run typecheck` is clean under `strict` (plus `noUncheckedIndexedAccess`), 13 unit tests pass (optimistic update, rollback on 500, rollback on network drop, offline guard, double-tap guard, retry after failure, persistence scope, pagination/sorting/filter/404 on the mock server), and `expo export --platform android` produces a Hermes bundle. A fresh clone installs with `npm ci`.
+### Shopify FlashList
+
+Provides an efficient list implementation for rendering many job cards.
+
+### React Native NetInfo
+
+Provides network connectivity information used by the offline UI and request handling.
+
+### AsyncStorage
+
+Persists supported application state and cached data between app sessions.
+
+### TypeScript
+
+Provides static typing for application data, navigation-related code, and business logic.
+
+## Important Implementation Details
+
+### Optimistic Apply
+
+The application updates the UI immediately when the user taps Apply. If the request succeeds, the application is confirmed. If it fails, the optimistic state is rolled back and the user receives an appropriate error message.
+
+### Offline Handling
+
+The app uses network connectivity information and cached query data to support offline access to previously loaded jobs. Applying for a job is disabled or rejected while offline, according to the implemented flow.
+
+### Pagination and Refresh
+
+The job list loads results in pages and supports additional loading while scrolling. Pull-to-refresh allows users to request updated results.
+
+### Language Switching
+
+Users can switch between English and Hindi. UI translations are maintained in the internationalization files.
+
+### Persistence
+
+The application uses persistent storage for supported client state and cached data. Pending or failed application state should not be treated as a confirmed application.
+
+## Testing and Verification
+
+Before submitting, verify the following commands from the project directory:
+
+```bash
+npm run typecheck
+npm test
+npx expo-doctor
+```
+
+You can also check whether the Android export succeeds:
+
+```bash
+npx expo export --platform android
+```
+
+Only report test counts or successful build/export results after confirming them in your local environment.
+
+## Known Trade-offs
+
+- The app uses a mock API instead of a production backend.
+- Offline access depends on data that has already been cached.
+- An application interrupted by terminating the app may require a more robust retry/outbox mechanism.
+- The persisted query cache is suitable for the assignment's dataset but may need a different storage strategy at larger scale.
+- Hindi translations should be reviewed by a native speaker before production use.
+- Accessibility should be validated with assistive technologies such as TalkBack.
+
+## Future Improvements
+
+- Integrate a production backend.
+- Add a persistent application outbox with safe retries.
+- Expand component and end-to-end test coverage.
+- Perform accessibility testing with TalkBack.
+- Review Hindi translations with a native speaker.
+- Profile performance on low-end Android devices.
+- Improve caching and storage for larger datasets.
+
+## Assignment Submission
+
+**Project:** Jobzshala — Job Matches  
+**Repository:** https://github.com/AnandhuShaji1999/jobzshala-react-native-assignment
+
+Built as a React Native take-home assignment for Jobzshala.
